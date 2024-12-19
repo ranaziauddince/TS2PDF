@@ -58,7 +58,7 @@ jobs:
       - name: Configure AWS Credentials
         uses: aws-actions/configure-aws-credentials@v2
         with:
-          role-to-assume: arn:aws:iam::717279698366:role/gh-role
+          role-to-assume: arn:aws:iam::717279698366:role/github-role
           aws-region: ${{ env.AWS_REGION }}
 
       # Step 2: Trigger CodeDeploy Deployment

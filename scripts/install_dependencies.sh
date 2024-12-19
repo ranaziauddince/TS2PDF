@@ -20,6 +20,10 @@ sudo apt-get update -y
 echo "Installing PHP 8.2 and extensions..."
 sudo apt-get install -y php8.2-cli php8.2-fpm php8.2-mbstring php8.2-xml php8.2-bcmath php8.2-curl php8.2-zip php8.2-common php8.2-opcache php8.2-readline php8.2-mysql
 
+
+# install pm2 
+sudo npm install -g pm2
+
 # Confirm PHP installation
 echo "PHP version installed:"
 php -v
