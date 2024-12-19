@@ -1,0 +1,31 @@
+{
+  "name": "TSOLife PDF",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "start": "nodemon index.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/TSOLife/TS2PDF.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.5",
+    "express": "^4.17.1",
+    "nodemon": "^3.1.0",
+    "pdf-manip": "^1.0.3",
+    "pdf-merger-js": "^4.3.1",
+    "pdf-to-base64": "^1.0.3",
+    "pm2": "^5.3.1",
+    "puppeteer": "^22.9.0"
+  },
+  "bugs": {
+    "url": "https://github.com/TSOLife/TS2PDF/issues"
+  },
+  "homepage": "https://github.com/TSOLife/TS2PDF#readme"
+}

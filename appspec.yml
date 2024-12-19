@@ -1,0 +1,36 @@
+version: 0.0
+os: linux
+
+files:
+  - source: /
+    destination: /home/ubuntu/pdf.tsolife.com
+file_exists_behavior: OVERWRITE
+
+permissions:
+  - object: /home/ubuntu/pdf.tsolife.com
+    pattern: "**"
+    owner: www-data
+    group: www-data
+    mode: 775
+    type:
+      - file
+      - directory
+
+hooks:
+  BeforeInstall:
+    - location: scripts/install_dependencies.sh
+      timeout: 300
+      runas: root
+
+  # AfterInstall:
+  #   - location: scripts/setup_laravel.sh
+  #     timeout: 300
+  #     runas: root
+
+  ApplicationStart:
+    - location: scripts/setup_nginx.sh
+      timeout: 120
+      runas: root
+    - location: scripts/restart_services.sh
+      timeout: 120
+      runas: root
