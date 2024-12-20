@@ -11,6 +11,13 @@ permissions:
 
 env:
   AWS_REGION: "us-east-1"
+  CODE_DEPLOY_APP_NAME: "pdf"
+  CODE_DEPLOY_GROUP_NAME: "pdf"
+  ARTIFACT_BUCKET: "cicd-deployment-bucket"
+  APP_NAME: "pdf"
+  AWS_ACCOUNT_ID: "717279698366"
+  ASSUME_ROLE_NAME: "gh-role"
+  ENV: alpha
 
 jobs:
   build:
@@ -37,19 +44,20 @@ jobs:
         run: zip -r artifact.zip .
 
       # Step 5: Configure AWS Credentials
+      # Step 7: Configure AWS Credentials. 
       - name: Configure AWS Credentials
         uses: aws-actions/configure-aws-credentials@v2
         with:
-          role-to-assume: arn:aws:iam::717279698366:role/github-role
+          role-to-assume: arn:aws:iam::${{ env.AWS_ACCOUNT_ID }}:role/${{ env.ASSUME_ROLE_NAME }}
           aws-region: ${{ env.AWS_REGION }}
 
-      # Step 6: Upload Artifact to S3
+      # Step 8: Upload Artifact to S3
       - name: Upload Artifact to S3
         run: |
-          aws s3 cp artifact.zip s3://cicd-deployment-bucket/node-app/${{ github.run_id }}/artifact.zip
+          aws s3 cp artifact.zip s3://${{ env.ARTIFACT_BUCKET }}/${{ env.APP_NAME }}/${{ github.run_id }}/artifact.zip
 
   deploy:
-    name: Deploy Node.js App to EC2 via CodeDeploy
+    name: Deploy Alpha to EC2 via CodeDeploy
     runs-on: ubuntu-latest
     needs: build
 
@@ -58,14 +66,54 @@ jobs:
       - name: Configure AWS Credentials
         uses: aws-actions/configure-aws-credentials@v2
         with:
-          role-to-assume: arn:aws:iam::717279698366:role/github-role
+          role-to-assume: arn:aws:iam::${{ env.AWS_ACCOUNT_ID }}:role/${{ env.ASSUME_ROLE_NAME }}
           aws-region: ${{ env.AWS_REGION }}
 
-      # Step 2: Trigger CodeDeploy Deployment
-      - name: Trigger CodeDeploy Deployment
+      # Step 2: Check for Existing Deployment
+      - name: Check Existing Deployment
+        id: check-deployment
         run: |
-          aws deploy create-deployment \
-            --application-name pdf \
-            --deployment-group-name pdf \
-            --s3-location bucket=cicd-deployment-bucket,bundleType=zip,key=node-app/${{ github.run_id }}/artifact.zip \
+          EXISTING_DEPLOYMENT_ID=$(aws deploy list-deployments \
+            --application-name ${{ env.CODE_DEPLOY_APP_NAME }} \
+            --deployment-group-name ${{ env.CODE_DEPLOY_GROUP_NAME }} \
+            --include-only-statuses InProgress \
+            --query 'deployments[0]' --output text \
+            --region ${{ env.AWS_REGION }})
+          if [ "$EXISTING_DEPLOYMENT_ID" != "None" ]; then
+            echo "There is an ongoing deployment: $EXISTING_DEPLOYMENT_ID"
+            exit 1
+          else
+            echo "No ongoing deployment."
+          fi
+
+      # Step 3: Trigger CodeDeploy Deployment for Alpha
+      - name: Trigger CodeDeploy Deployment
+        id: trigger-deployment
+        run: |
+          DEPLOYMENT_ID=$(aws deploy create-deployment \
+            --application-name ${{ env.CODE_DEPLOY_APP_NAME }} \
+            --deployment-group-name ${{ env.CODE_DEPLOY_GROUP_NAME }} \
+            --s3-location bucket=${{ env.ARTIFACT_BUCKET }},bundleType=zip,key=${{ env.APP_NAME }}/${{ github.run_id }}/artifact.zip \
+            --region ${{ env.AWS_REGION }} \
+            --query 'deploymentId' --output text)
+          echo "DEPLOYMENT_ID=$DEPLOYMENT_ID" >> $GITHUB_ENV
+
+      # Step 4: Wait for Deployment to Complete..
+      - name: Wait for Deployment to Complete
+        run: |
+          aws deploy wait deployment-successful \
+            --deployment-id $DEPLOYMENT_ID \
             --region ${{ env.AWS_REGION }}
+
+      # Step 5: Get Deployment Status
+      - name: Get Deployment Status
+        run: |
+          STATUS=$(aws deploy get-deployment \
+            --deployment-id $DEPLOYMENT_ID \
+            --query 'deploymentInfo.status' --output text \
+            --region ${{ env.AWS_REGION }})
+          echo "Deployment Status: $STATUS"
+          if [ "$STATUS" != "Succeeded" ]; then
+            echo "Deployment failed with status: $STATUS"
+            exit 1
+          fi
