@@ -5,7 +5,7 @@ set -e
 echo "Updating package index..."
 sudo apt-get update -y
 
-# Add repository for PHP 8.2
+# Add repository for PHP 8.2.
 echo "Adding repository for PHP 8.2..."
 sudo apt-get install -y software-properties-common
 
