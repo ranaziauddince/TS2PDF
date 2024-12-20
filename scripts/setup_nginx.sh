@@ -2,8 +2,8 @@
 set -e
 
 # Define variables
-NGINX_CONF="/etc/nginx/sites-available/angular-app"
-APP_ROOT="/var/www/angular-app/dist" # Replace with the actual deployment path for your Angular app
+NGINX_CONF="/etc/nginx/sites-available/pdf.tsolife.com"
+APP_ROOT="/home/ubuntu/pdf.tsolife.com" # Replace with the actual deployment path for your Angular app
 
 # Create Nginx configuration for Angular application
 echo "Creating Nginx configuration file..."
