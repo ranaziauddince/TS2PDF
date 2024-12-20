@@ -16,7 +16,7 @@ env:
   ARTIFACT_BUCKET: "cicd-deployment-bucket"
   APP_NAME: "pdf"
   AWS_ACCOUNT_ID: "717279698366"
-  ASSUME_ROLE_NAME: "gh-role"
+  ASSUME_ROLE_NAME: "github-role"
   ENV: alpha
 
 jobs:
